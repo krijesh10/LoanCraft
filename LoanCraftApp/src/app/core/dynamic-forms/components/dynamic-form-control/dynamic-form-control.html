@@ -1,0 +1,48 @@
+<div [formGroup]="form" class="control-wrapper" [class.has-error]="!isValid">
+    <div class="label-row">
+        <label [attr.for]="control.key" class="control-label">
+            {{ control.label }}
+            @if (control.required) {
+            <span class="required-indicator">*</span>
+            }
+        </label>
+    </div>
+
+    <div class="input-container">
+        @switch (control.controlType) {
+        @case ('textbox') {
+        <input [formControlName]="control.key" [id]="control.key" [type]="control.type || 'text'"
+            [placeholder]="control.placeholder" class="form-input" />
+        }
+        @case ('number') {
+        <input [formControlName]="control.key" [id]="control.key" type="number" [min]="control.min ?? null"
+            [max]="control.max ?? null" [placeholder]="control.placeholder" class="form-input" />
+        }
+        @case ('dropdown') {
+        <select [formControlName]="control.key" [id]="control.key" class="form-select">
+            <option value="" disabled>{{ control.placeholder || 'Select an option' }}</option>
+            @for (opt of control.options; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+            }
+        </select>
+        }
+        @case ('switch') {
+        <label class="switch-toggle">
+            <input type="checkbox" [formControlName]="control.key" [id]="control.key" />
+            <span class="slider"></span>
+            <span class="switch-text">
+                {{ form.get(control.key)?.value ? 'Active / Enabled' : 'Inactive / Disabled' }}
+            </span>
+        </label>
+        }
+        @case ('textarea') {
+        <textarea [formControlName]="control.key" [id]="control.key" [placeholder]="control.placeholder" rows="3"
+            class="form-textarea"></textarea>
+        }
+        }
+    </div>
+
+    @if (!isValid) {
+    <div class="error-text">{{ errorMessage }}</div>
+    }
+</div>

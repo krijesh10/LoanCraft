@@ -1,0 +1,6 @@
+@LoanCraft.API_HostAddress = http://localhost:5293
+
+GET {{LoanCraft.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

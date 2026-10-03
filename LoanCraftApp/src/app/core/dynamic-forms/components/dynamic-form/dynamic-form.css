@@ -1,0 +1,27 @@
+.dynamic-form-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.submit-btn {
+    margin-top: 0.75rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #2563eb;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background-color: #1d4ed8;
+}
+
+.submit-btn:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}

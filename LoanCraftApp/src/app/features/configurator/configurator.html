@@ -1,0 +1,309 @@
+<div class="studio-layout">
+    <!-- Top Application Bar -->
+    <header class="studio-header">
+        <div class="brand">
+            <span class="brand-icon">⚡</span>
+            <div>
+                <h1 class="brand-title">LoanCraft Studio</h1>
+                <p class="brand-sub">Metadata-Driven Dynamic Configurator & Workflow Engine</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- User Session & Logout -->
+            @if (authService.currentUser(); as user) {
+            <div class="user-pill">
+                <span class="user-name">👤 {{ user.fullName }}</span>
+                <button type="button" class="btn-logout" (click)="authService.logout()" title="Sign Out">
+                    Logout
+                </button>
+            </div>
+            }
+
+            <!-- SignalR Connection Status Pill -->
+            <div class="signalr-pill" [attr.data-status]="hubStatus()">
+                <span class="status-dot"></span>
+                <span class="status-label">SignalR: {{ hubStatus() }}</span>
+            </div>
+
+            <!-- Telemetry Drawer Toggle Button -->
+            @if (stepHistory().length > 0 || activeLoan()) {
+            <button type="button" class="btn-secondary" (click)="toggleTelemetry()">
+                <span>📊 {{ isTelemetryOpen() ? 'Hide Telemetry' : 'View Telemetry' }}</span>
+            </button>
+            }
+
+            <!-- Primary Execute Pipeline Button -->
+            <button type="button" class="btn-execute" (click)="executeWorkflow()" [disabled]="isExecuting()">
+                @if (isExecuting()) {
+                <span class="spinner"></span>
+                <span>Executing 4 Commands...</span>
+                } @else {
+                <span>🚀 Execute Workflow Pipeline</span>
+                }
+            </button>
+        </div>
+    </header>
+
+    <!-- 3-Column Split Workspace -->
+    <div class="studio-body" [class.drawer-open]="isTelemetryOpen()">
+        <!-- 1. LEFT PALETTE: Component & Command Palette -->
+        <aside class="left-palette">
+            <div class="panel-header">
+                <h2>Component Palette</h2>
+                <span class="badge">Click to Add</span>
+            </div>
+
+            <div class="palette-section">
+                <span class="section-title">Form Controls</span>
+                <button class="palette-item" (click)="addItem('text')">
+                    <span class="item-icon">📝</span>
+                    <div class="item-info">
+                        <span class="item-name">Text Field</span>
+                        <span class="item-desc">Names, emails, text</span>
+                    </div>
+                </button>
+
+                <button class="palette-item" (click)="addItem('currency')">
+                    <span class="item-icon">💵</span>
+                    <div class="item-info">
+                        <span class="item-name">Currency / Amount</span>
+                        <span class="item-desc">Income, debt, loan amount</span>
+                    </div>
+                </button>
+
+                <button class="palette-item" (click)="addItem('number')">
+                    <span class="item-icon">🔢</span>
+                    <div class="item-info">
+                        <span class="item-name">Numeric Stepper</span>
+                        <span class="item-desc">Scores, tenure months</span>
+                    </div>
+                </button>
+
+                <button class="palette-item" (click)="addItem('switch')">
+                    <span class="item-icon">🔘</span>
+                    <div class="item-info">
+                        <span class="item-name">Toggle Switch</span>
+                        <span class="item-desc">KYC flag, collateral status</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="palette-section">
+                <span class="section-title">Workflow Commands (GoF Pattern)</span>
+                <button class="palette-item command-item" (click)="addItem('command_rest')">
+                    <span class="item-icon">🌐</span>
+                    <div class="item-info">
+                        <span class="item-name">REST Bureau Command</span>
+                        <span class="item-desc">External credit inquiry</span>
+                    </div>
+                </button>
+
+                <button class="palette-item command-item" (click)="addItem('command_rule')">
+                    <span class="item-icon">⚖️</span>
+                    <div class="item-info">
+                        <span class="item-name">Decision Rule Command</span>
+                        <span class="item-desc">Policy branch evaluation</span>
+                    </div>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 2. CENTER: Interactive Form & Workflow Canvas -->
+        <main class="center-canvas">
+            <div class="canvas-header">
+                <div>
+                    <h2>Design Surface (Canvas)</h2>
+                    <p class="canvas-subtitle">Click any element below to inspect and customize its schema</p>
+                </div>
+                <span class="element-count">{{ canvasItems().length }} Configured Elements</span>
+            </div>
+
+            <div class="canvas-viewport">
+                <div class="canvas-grid">
+                    @for (item of canvasItems(); track item.id) {
+                    <div class="canvas-card" [class.is-active]="activeItemId() === item.id" (click)="selectItem(item)">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <span class="card-badge" [class.badge-command]="item.type.startsWith('command_')">
+                                    {{ item.type.toUpperCase() }}
+                                </span>
+                                <span class="card-title">{{ item.config.label }}</span>
+                            </div>
+                            <button class="delete-btn" title="Remove from canvas" (click)="removeItem(item.id, $event)">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div class="card-preview">
+                            @if (item.type === 'text') {
+                            <input type="text" [(ngModel)]="item.value" [placeholder]="item.config.placeholder || ''"
+                                class="canvas-input" />
+                            }
+                            @if (item.type === 'currency' || item.type === 'number') {
+                            <div class="currency-input-wrapper">
+                                <input type="number" [(ngModel)]="item.value" [min]="item.config.min ?? 0"
+                                    [max]="item.config.max ?? 1000000" class="canvas-input" />
+                            </div>
+                            }
+                            @if (item.type === 'switch') {
+                            <label class="canvas-switch">
+                                <input type="checkbox" [(ngModel)]="item.value" />
+                                <span>{{ item.value ? 'Active / True' : 'Inactive / False' }}</span>
+                            </label>
+                            }
+                            @if (item.type === 'command_rest') {
+                            <div class="command-preview-box">
+                                <code>GET {{ item.config.endpointUrl }}</code>
+                                <span class="tag">IWorkflowCommand</span>
+                            </div>
+                            }
+                            @if (item.type === 'command_rule') {
+                            <div class="command-preview-box">
+                                <code>RULE: {{ item.config.ruleExpression }}</code>
+                                <span class="tag">Decision Policy</span>
+                            </div>
+                            }
+                        </div>
+
+                        <div class="card-footer">
+                            <span class="prop-key">Property: <code>{{ item.key }}</code></span>
+                            @if (item.config.required) {
+                            <span class="required-flag">Required</span>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </main>
+
+        <!-- 3. RIGHT PANEL: Single Reusable Dynamic Form Inspector -->
+        <aside class="right-inspector">
+            <div class="panel-header">
+                <div>
+                    <h2>Property Inspector</h2>
+                    <span class="badge-single">1 Single Dynamic Engine</span>
+                </div>
+            </div>
+
+            <div class="inspector-content">
+                @if (activeItem) {
+                <div class="inspector-meta-banner">
+                    <span class="meta-label">Selected Element</span>
+                    <span class="meta-type">{{ activeItem.title }}</span>
+                    <span class="meta-id">ID: {{ activeItem.id }}</span>
+                </div>
+
+                <!-- THE DYNAMIC FORM ENGINE -->
+                <app-dynamic-form [controls]="inspectorControls()"
+                    (formChange)="onInspectorChange($event)"></app-dynamic-form>
+                } @else {
+                <div class="empty-inspector">
+                    <span class="empty-icon">👆</span>
+                    <p>Select any element on the canvas to inspect and configure its metadata properties dynamically.
+                    </p>
+                </div>
+                }
+            </div>
+        </aside>
+    </div>
+
+    <!-- 4. BOTTOM DOCKED: Real-Time Telemetry & Command Pipeline Monitor -->
+    @if (isTelemetryOpen()) {
+    <footer class="telemetry-drawer">
+        <div class="drawer-header">
+            <div class="drawer-title-group">
+                <span class="drawer-icon">📡</span>
+                <div>
+                    <h3>GoF Command Execution Pipeline & Real-Time SignalR Telemetry</h3>
+                    <p class="drawer-subtitle">Broadcasting microsecond progress via WebSockets</p>
+                </div>
+            </div>
+
+            <div class="drawer-controls">
+                <span class="progress-pill">{{ progressPercentage() }}% Executed</span>
+                <button type="button" class="btn-close-drawer" (click)="toggleTelemetry()" title="Close Telemetry">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- Animated Progress Bar -->
+        <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="progressPercentage()"></div>
+        </div>
+
+        @if (executionError()) {
+        <div class="execution-error-banner">
+            <span>⚠️ {{ executionError() }}</span>
+        </div>
+        }
+
+        <div class="drawer-content-grid">
+            <!-- 4 Step Cards Pipeline -->
+            <div class="steps-row">
+                <!-- STEP 1 -->
+                <div class="telemetry-step-card" [attr.data-status]="getStepStatus('STEP_BUREAU_PULL')">
+                    <div class="step-badge">Step 1</div>
+                    <div class="step-info">
+                        <h4>External Credit Bureau</h4>
+                        <code>CallRestApiCommand</code>
+                    </div>
+                    <span class="step-status-tag">{{ getStepStatus('STEP_BUREAU_PULL') }}</span>
+                </div>
+
+                <!-- STEP 2 -->
+                <div class="telemetry-step-card" [attr.data-status]="getStepStatus('STEP_DTI_MAPPING')">
+                    <div class="step-badge">Step 2</div>
+                    <div class="step-info">
+                        <h4>DTI & Exposure Ratio</h4>
+                        <code>MappingCommand</code>
+                    </div>
+                    <span class="step-status-tag">{{ getStepStatus('STEP_DTI_MAPPING') }}</span>
+                </div>
+
+                <!-- STEP 3 -->
+                <div class="telemetry-step-card" [attr.data-status]="getStepStatus('STEP_UNDERWRITE_DECISION')">
+                    <div class="step-badge">Step 3</div>
+                    <div class="step-info">
+                        <h4>Policy Matrix Rule</h4>
+                        <code>DecisionRuleCommand</code>
+                    </div>
+                    <span class="step-status-tag">{{ getStepStatus('STEP_UNDERWRITE_DECISION') }}</span>
+                </div>
+
+                <!-- STEP 4 -->
+                <div class="telemetry-step-card" [attr.data-status]="getStepStatus('STEP_PERSIST_RESULTS')">
+                    <div class="step-badge">Step 4</div>
+                    <div class="step-info">
+                        <h4>Persist & Audit Entity</h4>
+                        <code>ObjectMutationCommand</code>
+                    </div>
+                    <span class="step-status-tag">{{ getStepStatus('STEP_PERSIST_RESULTS') }}</span>
+                </div>
+            </div>
+
+            <!-- Final Underwriting Decision Outcome -->
+            @if (activeLoan()) {
+            <div class="final-decision-box" [class.approved]="activeLoan()?.status === 'Approved'"
+                [class.rejected]="activeLoan()?.status === 'Rejected'">
+                <div class="decision-title">
+                    <span class="decision-icon">{{ activeLoan()?.status === 'Approved' ? '✅' : '❌' }}</span>
+                    <div>
+                        <strong>Underwriting Decision: {{ activeLoan()?.status }}</strong>
+                        <small>App #{{ activeLoan()?.applicationNumber || activeLoan()?.id }}</small>
+                    </div>
+                </div>
+                <div class="decision-details">
+                    <div>Applicant: <strong>{{ activeLoan()?.applicantName }}</strong></div>
+                    <div>Requested: <strong>${{ activeLoan()?.requestedAmount | number }}</strong></div>
+                    <div>Credit Score: <strong>{{ activeLoan()?.creditScore }}</strong></div>
+                    <div>Notes: <em>{{ activeLoan()?.underwriterNotes }}</em></div>
+                </div>
+            </div>
+            }
+        </div>
+    </footer>
+    }
+</div>
