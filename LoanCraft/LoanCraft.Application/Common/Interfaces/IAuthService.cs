@@ -11,5 +11,6 @@ namespace LoanCraft.Application.Common.Interfaces
     {
         Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto);
         Task<AuthResponseDto> LoginAsync(LoginRequestDto dto);
+        Task<AuthResponseDto> RefreshTokenAsync(string email);
     }
 }

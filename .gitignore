@@ -11,6 +11,8 @@
 *.ide/
 _ReSharper*/
 *.dotCover
+**/Logs/ 
+*.log
 
 # ==========================================
 # Node / Angular Build Artifacts

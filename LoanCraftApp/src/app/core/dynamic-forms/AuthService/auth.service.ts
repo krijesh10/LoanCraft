@@ -46,4 +46,14 @@ export class AuthService {
         const raw = localStorage.getItem('loancraft_session');
         return raw ? JSON.parse(raw) : null;
     }
+
+    public extendSession(): Observable<UserSession> {
+        return this.http.post<UserSession>(`${this.baseUrl}/refresh`, {}).pipe(
+            tap(session => {
+                localStorage.setItem('loancraft_session', JSON.stringify(session));
+                this.currentUser.set(session);
+            })
+        );
+    }
+
 }

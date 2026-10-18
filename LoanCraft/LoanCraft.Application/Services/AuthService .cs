@@ -49,4 +49,15 @@ public class AuthService : IAuthService
         var token = _jwtGenerator.GenerateToken(user);
         return new AuthResponseDto(token, user.FullName, user.Email, user.Role, DateTime.UtcNow.AddMinutes(120));
     }
+
+    public async Task<AuthResponseDto> RefreshTokenAsync(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null) throw new UnauthorizedAccessException("User session invalid.");
+
+        var token = _jwtGenerator.GenerateToken(user);
+        return new AuthResponseDto(token, user.FullName, user.Email, user.Role, DateTime.UtcNow.AddMinutes(120));
+    }
+
+
 }

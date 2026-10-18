@@ -1,0 +1,33 @@
+<div class="toast-container" aria-live="polite">
+    @for (toast of toastService.toasts(); track toast.id) {
+    <div class="toast-card" [attr.data-type]="toast.type">
+        <div class="toast-icon">
+            @switch (toast.type) {
+            @case ('error') { ❌ }
+            @case ('warning') { ⚠️ }
+            @case ('success') { ✅ }
+            @default { ℹ️ }
+            }
+        </div>
+
+        <div class="toast-content">
+            <div class="toast-header">
+                <strong class="toast-title">{{ toast.title }}</strong>
+                <button type="button" class="btn-close" (click)="toastService.remove(toast.id)">✕</button>
+            </div>
+            <p class="toast-message">{{ toast.message }}</p>
+
+            @if (toast.traceId) {
+            <div class="trace-pill">
+                <span class="trace-label">Trace ID:</span>
+                <code class="trace-code">{{ toast.traceId }}</code>
+                <button type="button" class="btn-copy" (click)="copyTraceId(toast.traceId, $event)"
+                    title="Copy Trace ID for Support">
+                    📋 Copy
+                </button>
+            </div>
+            }
+        </div>
+    </div>
+    }
+</div>

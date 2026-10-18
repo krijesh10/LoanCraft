@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
+import { KeycloakService } from '../../services/keycloak.service';
 
 @Component({
     selector: 'app-login',
@@ -14,6 +15,7 @@ import { AuthService } from '../auth.service';
 export class Login {
     private readonly auth = inject(AuthService);
     private readonly router = inject(Router);
+    private readonly keycloakService = inject(KeycloakService);
 
     email = signal('underwriter@loancraft.com');
     password = signal('Password123!');
@@ -35,6 +37,11 @@ export class Login {
             }
         });
     }
+
+    loginWithKeycloak(): void {
+        this.keycloakService.login();
+    }
+
 
     fillDemoCredentials(): void {
         this.email.set('underwriter@loancraft.com');

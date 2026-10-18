@@ -18,28 +18,28 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
     {
-        try
-        {
-            var result = await _authService.RegisterAsync(dto);
-            return Ok(result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var result = await _authService.RegisterAsync(dto);
+        return Ok(result);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
-        try
-        {
-            var result = await _authService.LoginAsync(dto);
-            return Ok(result);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Unauthorized(new { message = ex.Message });
-        }
+        var result = await _authService.LoginAsync(dto);
+        return Ok(result);
     }
+
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh()
+    {
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                 ?? User.FindFirst("email")?.Value;
+
+        if (string.IsNullOrEmpty(email)) return Unauthorized();
+
+        var result = await _authService.RefreshTokenAsync(email);
+        return Ok(result);
+    }
+
 }

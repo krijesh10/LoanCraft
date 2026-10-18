@@ -1,0 +1,27 @@
+@if (sessionService.isWarningOpen()) {
+<div class="modal-backdrop">
+    <div class="modal-card">
+        <div class="modal-header">
+            <div class="warning-badge">⚠️ SECURITY NOTICE</div>
+            <h2>Session Timeout Warning</h2>
+            <p class="modal-sub">
+                To comply with financial data security standards, inactive sessions are automatically terminated.
+            </p>
+        </div>
+
+        <div class="countdown-display">
+            <span class="countdown-label">Time Remaining Until Auto-Lock</span>
+            <div class="countdown-value">{{ sessionService.formattedCountdown() }}</div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-extend" (click)="sessionService.extendSession()">
+                ⚡ Extend My Session
+            </button>
+            <button type="button" class="btn-signout" (click)="sessionService.logoutNow()">
+                🚪 Sign Out Now
+            </button>
+        </div>
+    </div>
+</div>
+}

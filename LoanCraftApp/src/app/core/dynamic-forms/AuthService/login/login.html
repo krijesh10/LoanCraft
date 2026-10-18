@@ -7,26 +7,34 @@
     </div>
 
     @if (errorMessage()) {
-      <div class="alert-error">
-        <span>⚠️</span>
-        <span>{{ errorMessage() }}</span>
-      </div>
+    <div class="alert-error">
+      <span>⚠️</span>
+      <span>{{ errorMessage() }}</span>
+    </div>
     }
+
+    <!-- Keycloak SSO Enterprise Button -->
+    <div style="margin: 16px 0; text-align: center;">
+      <div style="display: flex; align-items: center; margin: 12px 0;">
+        <hr style="flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+        <span style="padding: 0 10px; font-size: 11px; color: #64748b; font-weight: 600;">OR ENTERPRISE SSO</span>
+        <hr style="flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.1);" />
+      </div>
+
+      <button type="button" (click)="loginWithKeycloak()"
+        style="width: 100%; padding: 12px; background: linear-gradient(135deg, #0ea5e9, #0284c7); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <span>🔑</span> Sign in with Keycloak SSO (OAuth 2.0 / PKCE)
+      </button>
+    </div>
+
 
     <form (ngSubmit)="onSubmit()" class="login-form">
       <div class="form-group">
         <label for="emailInput">Corporate Email</label>
         <div class="input-wrapper">
           <span class="input-icon">✉️</span>
-          <input 
-            id="emailInput" 
-            type="email" 
-            [ngModel]="email()" 
-            (ngModelChange)="email.set($event)" 
-            name="email" 
-            placeholder="name@company.com" 
-            required 
-          />
+          <input id="emailInput" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email"
+            placeholder="name@company.com" required />
         </div>
       </div>
 
@@ -34,24 +42,17 @@
         <label for="passwordInput">Password</label>
         <div class="input-wrapper">
           <span class="input-icon">🔒</span>
-          <input 
-            id="passwordInput" 
-            type="password" 
-            [ngModel]="password()" 
-            (ngModelChange)="password.set($event)" 
-            name="password" 
-            placeholder="••••••••" 
-            required 
-          />
+          <input id="passwordInput" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)"
+            name="password" placeholder="••••••••" required />
         </div>
       </div>
 
       <button type="submit" class="btn-signin" [disabled]="isLoading()">
         @if (isLoading()) {
-          <span class="btn-spinner"></span>
-          <span>Verifying Credentials...</span>
+        <span class="btn-spinner"></span>
+        <span>Verifying Credentials...</span>
         } @else {
-          <span>Sign In to Studio →</span>
+        <span>Sign In to Studio →</span>
         }
       </button>
     </form>
