@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { AuthService } from '../AuthService/auth.service';
+import { environment } from '../../../../environments/environment';
 
 export interface StepProgressEvent {
     loanId: string;
@@ -25,7 +26,8 @@ export interface WorkflowCompletedEvent {
 })
 export class WorkflowHubService {
     // Hub URL - Port 7199 HTTPS (matches backend Program.cs: app.MapHub<WorkflowHub>("/hubs/workflow"))
-    private readonly hubUrl = 'https://localhost:7199/hubs/workflow';
+    private readonly hubUrl = `${environment.apiUrl}/hubs/workflow`;
+
     private hubConnection?: signalR.HubConnection;
     private readonly authService = inject(AuthService);
 

@@ -54,7 +54,7 @@ try
     {
         options.AddPolicy("AllowAngularDev", policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "http://localhost:4201")
+            policy.WithOrigins("http://localhost:4200", "http://localhost:4201" , "https://salmon-pebble-062e1c600.6.azurestaticapps.net")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()

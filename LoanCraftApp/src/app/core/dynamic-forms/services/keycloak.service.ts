@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import Keycloak from 'keycloak-js';
+import { environment } from '../../../../environments/environment';
 
 export interface KeycloakUserProfile {
     username: string;
@@ -22,7 +23,7 @@ export class KeycloakService {
      */
     public async init(): Promise<boolean> {
         this.keycloakInstance = new Keycloak({
-            url: 'http://localhost:8080',
+            url: environment.keycloakUrl,
             realm: 'LoanCraft',
             clientId: 'loancraft-app'
         });

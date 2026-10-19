@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface CreateLoanRequest {
     applicantName: string;
@@ -33,7 +34,7 @@ export interface LoanResponse {
 export class LoanApiService {
     private readonly http = inject(HttpClient);
     // Backend API URL - Port 7199 HTTPS (matches launchSettings.json)
-    private readonly baseUrl = 'https://localhost:7199/api/loans';
+    private readonly baseUrl = `${environment.apiUrl}/api/loans`;
 
     /**
      * Fetches all loan applications

@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface UserSession {
     token: string;
@@ -17,7 +18,7 @@ export interface UserSession {
 export class AuthService {
     private readonly http = inject(HttpClient);
     private readonly router = inject(Router);
-    private readonly baseUrl = 'https://localhost:7199/api/auth';
+    private readonly baseUrl = `${environment.apiUrl}/api/auth`;
 
     // Angular Signals for reactive authentication state
     public currentUser = signal<UserSession | null>(this.getStoredSession());
