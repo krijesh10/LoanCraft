@@ -1,0 +1,70 @@
+name: LoanCraft CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # ========================================================
+  # JOB 1: Build & Verify .NET 9 Backend
+  # ========================================================
+  build-backend:
+    name: Build .NET Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Clone the repository into the runner VM
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the exact .NET SDK version
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # Step 3: Download and restore NuGet packages
+      - name: Restore dependencies
+        run: dotnet restore LoanCraft/LoanCraft.sln
+
+      # Step 4: Compile all projects in Release mode
+      - name: Build solution
+        run: dotnet build LoanCraft/LoanCraft.sln --no-restore --configuration Release
+
+      # Step 5: Run tests (will execute if any test projects exist)
+      - name: Run Unit Tests
+        run: dotnet test LoanCraft/LoanCraft.sln --no-build --configuration Release --verbosity normal
+
+  # ========================================================
+  # JOB 2: Build & Verify Angular Frontend
+  # ========================================================
+  build-frontend:
+    name: Build Angular Frontend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: LoanCraftApp
+
+    steps:
+      # Step 1: Clone the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install Node.js runtime and cache npm dependencies
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: LoanCraftApp/package-lock.json
+
+      # Step 3: Perform clean install of npm packages
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 4: Compile Angular TypeScript to production bundles
+      - name: Build Angular app
+        run: npm run build -- --configuration production
