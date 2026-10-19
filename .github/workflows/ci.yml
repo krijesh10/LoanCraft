@@ -1,59 +1,62 @@
-name: LoanCraft CI
+name: LoanCraft CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch: # Allows manual trigger from GitHub Actions UI
 
 jobs:
   # ========================================================
-  # JOB 1: Build & Verify .NET 9 Backend
+  # JOB 1: Build, Test & Deploy .NET 9 Web API
   # ========================================================
-  build-backend:
-    name: Build .NET Backend
+  build-and-deploy-backend:
+    name: Build & Deploy .NET Backend
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Clone the repository into the runner VM
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up the exact .NET SDK version
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      # Step 3: Download and restore NuGet packages
       - name: Restore dependencies
         run: dotnet restore LoanCraft/LoanCraft.sln
 
-      # Step 4: Compile all projects in Release mode
-      - name: Build solution
+      - name: Build solution (Release)
         run: dotnet build LoanCraft/LoanCraft.sln --no-restore --configuration Release
 
-      # Step 5: Run tests (will execute if any test projects exist)
       - name: Run Unit Tests
         run: dotnet test LoanCraft/LoanCraft.sln --no-build --configuration Release --verbosity normal
 
+      # Package the compiled API into a standalone folder
+      - name: Publish API
+        run: dotnet publish LoanCraft/LoanCraft.API/LoanCraft.API.csproj --configuration Release --output ./publish-backend
+
+      # Deploy to Azure App Service (only runs on push to main branch)
+      - name: Deploy to Azure App Service
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'loancraft-api-krijesh'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: './publish-backend'
+
   # ========================================================
-  # JOB 2: Build & Verify Angular Frontend
+  # JOB 2: Build & Deploy Angular Frontend
   # ========================================================
-  build-frontend:
-    name: Build Angular Frontend
+  build-and-deploy-frontend:
+    name: Build & Deploy Angular Frontend
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: LoanCraftApp
-
     steps:
-      # Step 1: Clone the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Install Node.js runtime and cache npm dependencies
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -61,10 +64,21 @@ jobs:
           cache: 'npm'
           cache-dependency-path: LoanCraftApp/package-lock.json
 
-      # Step 3: Perform clean install of npm packages
       - name: Install dependencies
+        working-directory: LoanCraftApp
         run: npm ci
 
-      # Step 4: Compile Angular TypeScript to production bundles
       - name: Build Angular app
+        working-directory: LoanCraftApp
         run: npm run build -- --configuration production
+
+      # Deploy to Azure Static Web Apps (only runs on push to main branch)
+      - name: Deploy to Azure Static Web Apps
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: 'upload'
+          app_location: '/LoanCraftApp'
+          output_location: 'dist/loancraftApp/browser'
